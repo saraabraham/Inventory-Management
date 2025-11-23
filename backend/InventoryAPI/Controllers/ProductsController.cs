@@ -297,6 +297,42 @@ namespace InventoryAPI.Controllers
             });
         }
 
+        [HttpGet("reorder-suggestions")]
+        public async Task<ActionResult<IEnumerable<object>>> GetReorderSuggestions()
+        {
+            var products = await _productRepository.GetAllAsync();
+
+            var suggestions = products
+                .Where(p => p.IsActive && p.StockQuantity <= p.MinimumStock * 1.5) // Within 150% of minimum
+                .Select(p => new
+                {
+                    p.Id,
+                    p.SKU,
+                    p.Name,
+                    p.Category,
+                    CurrentStock = p.StockQuantity,
+                    MinimumStock = p.MinimumStock,
+                    Deficit = p.MinimumStock - p.StockQuantity,
+                    SuggestedOrderQuantity = CalculateReorderQuantity(p),
+                    EstimatedCost = p.Price * CalculateReorderQuantity(p),
+                    Priority = p.StockQuantity == 0 ? "Critical" :
+                               p.StockQuantity < p.MinimumStock ? "High" : "Medium",
+                    Supplier = p.Supplier != null ? new { p.Supplier.Id, p.Supplier.Name, p.Supplier.Email } : null
+                })
+                .OrderBy(s => s.CurrentStock)
+                .ToList();
+
+            return Ok(suggestions);
+        }
+
+        private int CalculateReorderQuantity(Product product)
+        {
+            // Simple algorithm: Order enough to reach 200% of minimum stock
+            var targetStock = product.MinimumStock * 2;
+            var needed = targetStock - product.StockQuantity;
+            return Math.Max(needed, product.MinimumStock); // At least minimum stock
+        }
+
         public class ImportResult
         {
             public int Success { get; set; } = 0;

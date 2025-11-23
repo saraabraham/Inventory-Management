@@ -7,6 +7,8 @@ import ProductForm from './components/ProductForm';
 import TransactionHistory from './components/TransactionHistory';
 import { History } from 'lucide-react';
 import ProductDetails from './components/ProductDetails';
+import ReorderSuggestions from './components/ReorderSuggestions';
+
 
 function App() {
 
@@ -41,6 +43,13 @@ function App() {
                     <History className="w-5 h-5 mr-2" />
                     Transactions
                   </Link>
+                  <Link
+                    to="/reorder"
+                    className="flex items-center px-3 py-2 rounded hover:bg-blue-700 transition"
+                  >
+                    <Package className="w-5 h-5 mr-2" />
+                    Reorder
+                  </Link>
                 </div>
               </div>
             </div>
@@ -57,6 +66,7 @@ function App() {
             <Route path="/products/edit/:id" element={<ProductForm />} />
             <Route path="/transactions" element={<TransactionHistory />} />
             <Route path="/products/:id/details" element={<ProductDetails />} />
+            <Route path="/reorder" element={<ReorderSuggestions />} />
           </Routes>
         </main>
       </div>
