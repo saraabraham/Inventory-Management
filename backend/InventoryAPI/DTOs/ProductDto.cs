@@ -15,6 +15,7 @@ namespace InventoryAPI.DTOs
         public string Location { get; set; } = string.Empty;
         public bool IsLowStock { get; set; }
         public bool IsActive { get; set; }
+        public string? ImageUrl { get; set; }
     }
 
     public class CreateProductDto
@@ -28,6 +29,7 @@ namespace InventoryAPI.DTOs
         public int MinimumStock { get; set; }
         public int SupplierId { get; set; }
         public string Location { get; set; } = string.Empty;
+        public string? ImageUrl { get; set; }
     }
 
     public class UpdateProductDto

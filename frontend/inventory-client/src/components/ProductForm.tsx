@@ -7,7 +7,7 @@ const ProductForm: React.FC = () => {
     const navigate = useNavigate();
     const isEditMode = !!id;
 
-    const [formData, setFormData] = useState<CreateProductDto>({
+    const [formData, setFormData] = useState<CreateProductDto & { imageUrl?: string }>({
         sku: '',
         name: '',
         description: '',
@@ -17,6 +17,7 @@ const ProductForm: React.FC = () => {
         minimumStock: 0,
         supplierId: 1,
         location: '',
+        imageUrl: '',
     });
 
     const [loading, setLoading] = useState(false);
@@ -41,6 +42,7 @@ const ProductForm: React.FC = () => {
                 minimumStock: product.minimumStock,
                 supplierId: product.supplierId,
                 location: product.location,
+                imageUrl: product.imageUrl || '',
             });
         } catch (error) {
             console.error('Error loading product:', error);
@@ -191,6 +193,32 @@ const ProductForm: React.FC = () => {
                             required
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ikea-blue focus:border-transparent"
                         />
+                    </div>
+                    <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Product Image URL
+                        </label>
+                        <input
+                            type="url"
+                            name="imageUrl"
+                            value={formData.imageUrl || ''}
+                            onChange={handleChange}
+                            placeholder="https://example.com/image.jpg"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ikea-blue focus:border-transparent"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                            Enter a URL to an image, or leave blank for default
+                        </p>
+                        {formData.imageUrl && (
+                            <img
+                                src={formData.imageUrl}
+                                alt="Preview"
+                                className="mt-3 w-32 h-32 object-cover rounded-lg border"
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150?text=Invalid+URL';
+                                }}
+                            />
+                        )}
                     </div>
 
                     <div>

@@ -16,6 +16,8 @@ export interface Product {
     location: string;
     isLowStock: boolean;
     isActive: boolean;
+    imageUrl?: string;
+
 }
 
 export interface CreateProductDto {
@@ -28,6 +30,8 @@ export interface CreateProductDto {
     minimumStock: number;
     supplierId: number;
     location: string;
+    imageUrl?: string;
+
 }
 
 const api = axios.create({

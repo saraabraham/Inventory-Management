@@ -1,10 +1,37 @@
 import React, { useEffect, useState } from 'react';
 import { Product, productService } from '../services/api';
-import { Plus, Edit, Trash2, Package, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Upload, Download } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Download } from 'lucide-react';
 import axios from 'axios';
+import BulkImport from './BulkImport';
 
+const ProductImage: React.FC<{ src?: string; alt: string }> = ({ src, alt }) => {
+    const [imageSrc, setImageSrc] = useState(src || 'https://via.placeholder.com/40/0051BA/FFFFFF?text=No+Img');
+    const [hasError, setHasError] = useState(false);
+
+    useEffect(() => {
+        if (src && !hasError) {
+            setImageSrc(src);
+        }
+    }, [src, hasError]);
+
+    const handleError = () => {
+        if (!hasError) {
+            setHasError(true);
+            setImageSrc('https://via.placeholder.com/40/0051BA/FFFFFF?text=No+Img');
+        }
+    };
+
+    return (
+        <img
+            src={imageSrc}
+            alt={alt}
+            className="w-10 h-10 rounded object-cover mr-3 bg-gray-100"
+            loading="lazy"
+            onError={handleError}
+        />
+    );
+};
 const ProductList: React.FC = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
@@ -15,8 +42,9 @@ const ProductList: React.FC = () => {
         category: '',
         priceMin: '',
         priceMax: '',
-        stockStatus: 'all' // all, low, in-stock, out-of-stock
+        stockStatus: 'all'
     });
+    const [showImport, setShowImport] = useState(false);
 
     useEffect(() => {
         loadProducts();
@@ -118,23 +146,43 @@ const ProductList: React.FC = () => {
 
     return (
         <div className="p-6">
+            {/* Header with Buttons */}
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold text-ikea-blue">Products</h1>
-                <button
-                    onClick={() => navigate('/products/new')}
-                    className="bg-ikea-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
-                >
-                    <Plus className="w-5 h-5 mr-2" />
-                    Add Product
-                </button>
-                <button
-                    onClick={handleExport}
-                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center mr-3"
-                >
-                    <Download className="w-5 h-5 mr-2" />
-                    Export CSV
-                </button>
+                <div className="flex space-x-3">
+                    <button
+                        onClick={() => setShowImport(!showImport)}
+                        className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 flex items-center"
+                    >
+                        <Upload className="w-5 h-5 mr-2" />
+                        Import CSV
+                    </button>
+                    <button
+                        onClick={handleExport}
+                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center"
+                    >
+                        <Download className="w-5 h-5 mr-2" />
+                        Export CSV
+                    </button>
+                    <button
+                        onClick={() => navigate('/products/new')}
+                        className="bg-ikea-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
+                    >
+                        <Plus className="w-5 h-5 mr-2" />
+                        Add Product
+                    </button>
+                </div>
             </div>
+
+            {/* Bulk Import Component */}
+            {showImport && (
+                <div className="mb-6">
+                    <BulkImport onComplete={() => {
+                        loadProducts();
+                        setShowImport(false);
+                    }} />
+                </div>
+            )}
 
             {/* Search Bar */}
             <div className="mb-6">
@@ -150,6 +198,7 @@ const ProductList: React.FC = () => {
                 </div>
             </div>
 
+            {/* Filters */}
             <div className="bg-white rounded-lg shadow p-4 mb-6">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
@@ -165,6 +214,8 @@ const ProductList: React.FC = () => {
                             <option value="Tables">Tables</option>
                             <option value="Bedroom">Bedroom</option>
                             <option value="Kitchen">Kitchen</option>
+                            <option value="Lighting">Lighting</option>
+                            <option value="Decor">Decor</option>
                         </select>
                     </div>
 
@@ -242,66 +293,92 @@ const ProductList: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                        {filteredProducts.map((product) => (
-                            <tr key={product.id} className={product.isLowStock ? 'bg-red-50' : ''}>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                    {product.sku}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                                    <div className="text-sm text-gray-500">{product.supplierName}</div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                        {product.category}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    ${product.price.toFixed(2)}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                    <div className="flex items-center space-x-2">
-                                        <span className={product.isLowStock ? 'text-red-600 font-semibold' : 'text-gray-900'}>
-                                            {product.stockQuantity}
-                                        </span>
-                                        <div className="flex space-x-1">
-                                            <button
-                                                onClick={() => handleStockAdjustment(product.id, 1)}
-                                                className="text-green-600 hover:text-green-800 text-xs font-semibold"
-                                            >
-                                                +
-                                            </button>
-                                            <button
-                                                onClick={() => handleStockAdjustment(product.id, -1)}
-                                                className="text-red-600 hover:text-red-800 text-xs font-semibold"
-                                                disabled={product.stockQuantity <= 0}
-                                            >
-                                                -
-                                            </button>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {product.location}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <button
-                                        onClick={() => navigate(`/products/edit/${product.id}`)}
-                                        className="text-ikea-blue hover:text-blue-700 mr-3"
-                                    >
-                                        <Edit className="w-5 h-5" />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(product.id)}
-                                        className="text-red-600 hover:text-red-800"
-                                    >
-                                        <Trash2 className="w-5 h-5" />
-                                    </button>
+                        {filteredProducts.length === 0 ? (
+                            <tr>
+                                <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                                    No products found. Try adjusting your filters or search term.
                                 </td>
                             </tr>
-                        ))}
+                        ) : (
+                            filteredProducts.map((product) => (
+                                <tr key={product.id} className={product.isLowStock ? 'bg-red-50' : ''}>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                        {product.sku}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="flex items-center">
+                                            <div className="w-10 h-10 rounded bg-ikea-blue text-white flex items-center justify-center text-xs font-bold mr-3">
+                                                {product.sku.substring(0, 2)}
+                                            </div>
+                                            <div>
+                                                <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                                                <div className="text-sm text-gray-500">{product.supplierName}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                            {product.category}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        ${product.price.toFixed(2)}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                        <div className="flex items-center space-x-2">
+                                            <span className={product.isLowStock ? 'text-red-600 font-semibold' : 'text-gray-900'}>
+                                                {product.stockQuantity}
+                                            </span>
+                                            <div className="flex space-x-1">
+                                                <button
+                                                    onClick={() => handleStockAdjustment(product.id, 1)}
+                                                    className="text-green-600 hover:text-green-800 text-xs font-semibold px-2 py-1 border border-green-600 rounded hover:bg-green-50"
+                                                    title="Increase stock"
+                                                >
+                                                    +
+                                                </button>
+                                                <button
+                                                    onClick={() => handleStockAdjustment(product.id, -1)}
+                                                    className="text-red-600 hover:text-red-800 text-xs font-semibold px-2 py-1 border border-red-600 rounded hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    disabled={product.stockQuantity <= 0}
+                                                    title="Decrease stock"
+                                                >
+                                                    -
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {product.location}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <div className="flex space-x-2">
+                                            <button
+                                                onClick={() => navigate(`/products/edit/${product.id}`)}
+                                                className="text-ikea-blue hover:text-blue-700"
+                                                title="Edit product"
+                                            >
+                                                <Edit className="w-5 h-5" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(product.id)}
+                                                className="text-red-600 hover:text-red-800"
+                                                title="Delete product"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
                     </tbody>
                 </table>
+            </div>
+
+            {/* Results Summary */}
+            <div className="mt-4 text-sm text-gray-600">
+                Showing {filteredProducts.length} of {products.length} products
             </div>
         </div>
     );

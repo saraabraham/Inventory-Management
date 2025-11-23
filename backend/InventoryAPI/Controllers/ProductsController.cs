@@ -206,5 +206,102 @@ namespace InventoryAPI.Controllers
             var bytes = Encoding.UTF8.GetBytes(csv.ToString());
             return File(bytes, "text/csv", $"inventory-export-{DateTime.Now:yyyyMMdd}.csv");
         }
+
+        [HttpPost("import")]
+        public async Task<IActionResult> ImportProducts([FromForm] IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("No file uploaded");
+
+            if (!file.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+                return BadRequest("Only CSV files are allowed");
+
+            var results = new ImportResult(); // Use proper class instead of anonymous type
+
+            try
+            {
+                using var reader = new StreamReader(file.OpenReadStream());
+
+                // Skip header line
+                await reader.ReadLineAsync();
+
+                while (!reader.EndOfStream)
+                {
+                    var line = await reader.ReadLineAsync();
+                    if (string.IsNullOrWhiteSpace(line)) continue;
+
+                    var values = line.Split(',');
+
+                    if (values.Length < 8)
+                    {
+                        results.Errors.Add($"Invalid row: {line}");
+                        results.Failed++;
+                        continue;
+                    }
+
+                    try
+                    {
+                        var sku = values[0].Trim();
+                        var existing = await _productRepository.GetBySkuAsync(sku);
+
+                        if (existing != null)
+                        {
+                            // Update existing product
+                            existing.Name = values[1].Trim();
+                            existing.Description = values[2].Trim();
+                            existing.Category = values[3].Trim();
+                            existing.Price = decimal.Parse(values[4].Trim());
+                            existing.StockQuantity = int.Parse(values[5].Trim());
+                            existing.MinimumStock = int.Parse(values[6].Trim());
+                            existing.Location = values[7].Trim();
+
+                            await _productRepository.UpdateAsync(existing);
+                        }
+                        else
+                        {
+                            // Create new product
+                            var product = new Product
+                            {
+                                SKU = sku,
+                                Name = values[1].Trim(),
+                                Description = values[2].Trim(),
+                                Category = values[3].Trim(),
+                                Price = decimal.Parse(values[4].Trim()),
+                                StockQuantity = int.Parse(values[5].Trim()),
+                                MinimumStock = int.Parse(values[6].Trim()),
+                                SupplierId = 1, // Default supplier
+                                Location = values[7].Trim()
+                            };
+
+                            await _productRepository.CreateAsync(product);
+                        }
+
+                        results.Success++;
+                    }
+                    catch (Exception ex)
+                    {
+                        results.Errors.Add($"Error processing row '{line}': {ex.Message}");
+                        results.Failed++;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error processing file: {ex.Message}");
+            }
+
+            return Ok(new
+            {
+                Message = $"Import completed. Success: {results.Success}, Failed: {results.Failed}",
+                Results = results
+            });
+        }
+
+        public class ImportResult
+        {
+            public int Success { get; set; } = 0;
+            public int Failed { get; set; } = 0;
+            public List<string> Errors { get; set; } = new List<string>();
+        }
     }
 }
