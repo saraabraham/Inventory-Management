@@ -11,19 +11,55 @@ const ProductList: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
+    const [filters, setFilters] = useState({
+        category: '',
+        priceMin: '',
+        priceMax: '',
+        stockStatus: 'all' // all, low, in-stock, out-of-stock
+    });
 
     useEffect(() => {
         loadProducts();
     }, []);
 
     useEffect(() => {
-        const filtered = products.filter(product =>
+        let filtered = products.filter(product =>
             product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             product.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
             product.category.toLowerCase().includes(searchTerm.toLowerCase())
         );
+
+        // Apply category filter
+        if (filters.category) {
+            filtered = filtered.filter(p => p.category === filters.category);
+        }
+
+        // Apply price filters
+        if (filters.priceMin) {
+            filtered = filtered.filter(p => p.price >= parseFloat(filters.priceMin));
+        }
+        if (filters.priceMax) {
+            filtered = filtered.filter(p => p.price <= parseFloat(filters.priceMax));
+        }
+
+        // Apply stock status filter
+        if (filters.stockStatus !== 'all') {
+            filtered = filtered.filter(p => {
+                switch (filters.stockStatus) {
+                    case 'low':
+                        return p.isLowStock;
+                    case 'in-stock':
+                        return p.stockQuantity > p.minimumStock;
+                    case 'out-of-stock':
+                        return p.stockQuantity === 0;
+                    default:
+                        return true;
+                }
+            });
+        }
+
         setFilteredProducts(filtered);
-    }, [searchTerm, products]);
+    }, [searchTerm, products, filters]);
 
     const loadProducts = async () => {
         try {
@@ -112,6 +148,69 @@ const ProductList: React.FC = () => {
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ikea-blue focus:border-transparent"
                     />
                 </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow p-4 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                        <select
+                            value={filters.category}
+                            onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ikea-blue"
+                        >
+                            <option value="">All Categories</option>
+                            <option value="Furniture">Furniture</option>
+                            <option value="Storage">Storage</option>
+                            <option value="Tables">Tables</option>
+                            <option value="Bedroom">Bedroom</option>
+                            <option value="Kitchen">Kitchen</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Min Price</label>
+                        <input
+                            type="number"
+                            value={filters.priceMin}
+                            onChange={(e) => setFilters({ ...filters, priceMin: e.target.value })}
+                            placeholder="$0"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ikea-blue"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Max Price</label>
+                        <input
+                            type="number"
+                            value={filters.priceMax}
+                            onChange={(e) => setFilters({ ...filters, priceMax: e.target.value })}
+                            placeholder="$10000"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ikea-blue"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Stock Status</label>
+                        <select
+                            value={filters.stockStatus}
+                            onChange={(e) => setFilters({ ...filters, stockStatus: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ikea-blue"
+                        >
+                            <option value="all">All</option>
+                            <option value="low">Low Stock</option>
+                            <option value="in-stock">In Stock</option>
+                            <option value="out-of-stock">Out of Stock</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button
+                    onClick={() => setFilters({ category: '', priceMin: '', priceMax: '', stockStatus: 'all' })}
+                    className="mt-3 text-sm text-ikea-blue hover:underline"
+                >
+                    Clear Filters
+                </button>
             </div>
 
             {/* Products Table */}

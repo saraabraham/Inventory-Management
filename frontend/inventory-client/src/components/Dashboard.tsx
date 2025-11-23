@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Product, productService } from '../services/api';
 import { Package, AlertTriangle, TrendingUp, DollarSign } from 'lucide-react';
+import { PieChart, Pie, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+
+const COLORS = ['#0051BA', '#FFDB00', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4'];
 
 const Dashboard: React.FC = () => {
     const [products, setProducts] = useState<Product[]>([]);
@@ -49,6 +52,7 @@ const Dashboard: React.FC = () => {
                     </div>
                 </div>
 
+
                 <div className="bg-white rounded-lg shadow p-6">
                     <div className="flex items-center justify-between">
                         <div>
@@ -77,6 +81,70 @@ const Dashboard: React.FC = () => {
                         </div>
                         <AlertTriangle className="w-12 h-12 text-red-600 opacity-20" />
                     </div>
+                </div>
+            </div>
+
+            {/* Charts Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                {/* Stock Value by Category */}
+                <div className="bg-white rounded-lg shadow p-6">
+                    <h2 className="text-xl font-semibold text-ikea-blue mb-4">
+                        Inventory Value by Category
+                    </h2>
+                    <ResponsiveContainer width="100%" height={300}>
+                        <PieChart>
+                            <Pie
+                                data={Object.entries(
+                                    products.reduce((acc, product) => {
+                                        const value = product.price * product.stockQuantity;
+                                        acc[product.category] = (acc[product.category] || 0) + value;
+                                        return acc;
+                                    }, {} as Record<string, number>)
+                                ).map(([name, value]) => ({ name, value }))}
+                                cx="50%"
+                                cy="50%"
+                                labelLine={false}
+                                label={({ name, percent }) => `${name}: ${percent ? (percent * 100).toFixed(0) : 0}%`}
+                                outerRadius={80}
+                                fill="#8884d8"
+                                dataKey="value"
+                            >
+                                {Object.keys(
+                                    products.reduce((acc, product) => {
+                                        acc[product.category] = true;
+                                        return acc;
+                                    }, {} as Record<string, boolean>)
+                                ).map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                ))}
+                            </Pie>
+                            <Tooltip formatter={(value: number) => `$${value.toFixed(2)}`} />
+                        </PieChart>
+                    </ResponsiveContainer>
+                </div>
+
+                {/* Top Products by Value */}
+                <div className="bg-white rounded-lg shadow p-6">
+                    <h2 className="text-xl font-semibold text-ikea-blue mb-4">
+                        Top 5 Products by Value
+                    </h2>
+                    <ResponsiveContainer width="100%" height={300}>
+                        <BarChart
+                            data={products
+                                .map(p => ({
+                                    name: p.name.length > 15 ? p.name.substring(0, 15) + '...' : p.name,
+                                    value: p.price * p.stockQuantity
+                                }))
+                                .sort((a, b) => b.value - a.value)
+                                .slice(0, 5)}
+                        >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
+                            <YAxis />
+                            <Tooltip formatter={(value: number) => `$${value.toFixed(2)}`} />
+                            <Bar dataKey="value" fill="#0051BA" />
+                        </BarChart>
+                    </ResponsiveContainer>
                 </div>
             </div>
 

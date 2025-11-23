@@ -73,6 +73,19 @@ namespace InventoryAPI.Repositories
             var product = await GetByIdAsync(productId);
             if (product == null) return false;
 
+            // Create transaction record
+            var transaction = new StockTransaction
+            {
+                ProductId = productId,
+                Type = quantity > 0 ? TransactionType.Purchase : TransactionType.Sale,
+                Quantity = Math.Abs(quantity),
+                TransactionDate = DateTime.UtcNow,
+                PerformedBy = "System",
+                Notes = quantity > 0 ? "Stock increase" : "Stock decrease"
+            };
+
+            _context.StockTransactions.Add(transaction);
+
             product.StockQuantity += quantity;
             product.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();

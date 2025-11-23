@@ -71,6 +71,50 @@ namespace InventoryAPI.Data
                 new Product { Id = 3, SKU = "LACK-001", Name = "LACK Coffee Table", Description = "Easy to assemble", Category = "Tables", Price = 49.99m, StockQuantity = 200, MinimumStock = 30, SupplierId = 2, Location = "Warehouse A-2" },
                 new Product { Id = 4, SKU = "MALM-001", Name = "MALM Bed Frame", Description = "Queen size with storage", Category = "Bedroom", Price = 299.99m, StockQuantity = 15, MinimumStock = 10, SupplierId = 2, Location = "Warehouse C-1" }
             );
+
+            // Seed Stock Transactions
+            modelBuilder.Entity<StockTransaction>().HasData(
+                new StockTransaction
+                {
+                    Id = 1,
+                    ProductId = 1,
+                    Type = TransactionType.Purchase,
+                    Quantity = 50,
+                    Reference = "PO-001",
+                    TransactionDate = DateTime.UtcNow.AddDays(-10),
+                    PerformedBy = "John Doe"
+                },
+                new StockTransaction
+                {
+                    Id = 2,
+                    ProductId = 1,
+                    Type = TransactionType.Sale,
+                    Quantity = 10,
+                    Reference = "SO-001",
+                    TransactionDate = DateTime.UtcNow.AddDays(-5),
+                    PerformedBy = "Jane Smith"
+                },
+                new StockTransaction
+                {
+                    Id = 3,
+                    ProductId = 2,
+                    Type = TransactionType.Purchase,
+                    Quantity = 15,
+                    Reference = "PO-002",
+                    TransactionDate = DateTime.UtcNow.AddDays(-7),
+                    PerformedBy = "John Doe"
+                },
+                new StockTransaction
+                {
+                    Id = 4,
+                    ProductId = 3,
+                    Type = TransactionType.Sale,
+                    Quantity = 25,
+                    Reference = "SO-002",
+                    TransactionDate = DateTime.UtcNow.AddDays(-2),
+                    PerformedBy = "Jane Smith"
+                }
+            );
         }
     }
 }

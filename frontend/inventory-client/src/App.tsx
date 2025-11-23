@@ -4,8 +4,11 @@ import { LayoutDashboard, Package, Home } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import ProductList from './components/ProductList';
 import ProductForm from './components/ProductForm';
+import TransactionHistory from './components/TransactionHistory';
+import { History } from 'lucide-react';
 
 function App() {
+
   return (
     <Router>
       <div className="min-h-screen bg-gray-100">
@@ -30,6 +33,13 @@ function App() {
                     <Package className="w-5 h-5 mr-2" />
                     Products
                   </Link>
+                  <Link
+                    to="/transactions"
+                    className="flex items-center px-3 py-2 rounded hover:bg-blue-700 transition"
+                  >
+                    <History className="w-5 h-5 mr-2" />
+                    Transactions
+                  </Link>
                 </div>
               </div>
             </div>
@@ -44,6 +54,7 @@ function App() {
             <Route path="/products" element={<ProductList />} />
             <Route path="/products/new" element={<ProductForm />} />
             <Route path="/products/edit/:id" element={<ProductForm />} />
+            <Route path="/transactions" element={<TransactionHistory />} />
           </Routes>
         </main>
       </div>
