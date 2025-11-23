@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { productService, CreateProductDto, Product } from '../services/api';
+import { productService, CreateProductDto } from '../services/api';
 
 const ProductForm: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -26,6 +26,7 @@ const ProductForm: React.FC = () => {
         if (isEditMode) {
             loadProduct();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
 
     const loadProduct = async () => {
