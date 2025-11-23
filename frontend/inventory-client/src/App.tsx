@@ -1,25 +1,53 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
+import { LayoutDashboard, Package, Home } from 'lucide-react';
+import Dashboard from './components/Dashboard';
+import ProductList from './components/ProductList';
+import ProductForm from './components/ProductForm';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <div className="min-h-screen bg-gray-100">
+        {/* Navigation */}
+        <nav className="bg-ikea-blue text-white shadow-lg">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-between h-16">
+              <div className="flex items-center space-x-8">
+                <h1 className="text-2xl font-bold">IKEA Inventory</h1>
+                <div className="flex space-x-4">
+                  <Link
+                    to="/dashboard"
+                    className="flex items-center px-3 py-2 rounded hover:bg-blue-700 transition"
+                  >
+                    <LayoutDashboard className="w-5 h-5 mr-2" />
+                    Dashboard
+                  </Link>
+                  <Link
+                    to="/products"
+                    className="flex items-center px-3 py-2 rounded hover:bg-blue-700 transition"
+                  >
+                    <Package className="w-5 h-5 mr-2" />
+                    Products
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </nav>
+
+        {/* Main Content */}
+        <main className="container mx-auto">
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/products" element={<ProductList />} />
+            <Route path="/products/new" element={<ProductForm />} />
+            <Route path="/products/edit/:id" element={<ProductForm />} />
+          </Routes>
+        </main>
+      </div>
+    </Router>
   );
 }
 
