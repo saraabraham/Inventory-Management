@@ -129,32 +129,34 @@ const Dashboard: React.FC = () => {
                 </div>
             </div>
 
-            {/* Low Stock Alert */}
-            {lowStockProducts.length > 0 && (
-                <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-8 rounded">
-                    <div className="flex items-start">
-                        <AlertTriangle className="w-6 h-6 text-red-600 mr-3 flex-shrink-0" />
-                        <div className="flex-1">
-                            <h3 className="text-red-800 font-semibold">Low Stock Alert</h3>
-                            <p className="text-red-700 text-sm">
-                                {lowStockProducts.length} product(s) are running low on stock
-                            </p>
-                        </div>
-                    </div>
-                    <div className="mt-3">
-                        {lowStockProducts.slice(0, 5).map(product => (
-                            <div key={product.id} className="text-sm text-red-700 py-1">
-                                • {product.name} - Only {product.stockQuantity} units left (Min: {product.minimumStock})
-                            </div>
-                        ))}
-                        {lowStockProducts.length > 5 && (
-                            <div className="text-sm text-red-600 py-1 font-semibold">
-                                + {lowStockProducts.length - 5} more items
-                            </div>
-                        )}
-                    </div>
+            {/* Low Stock Alert - Reserve space to prevent layout shift */}
+<div className="mb-8" style={{ minHeight: lowStockProducts.length > 0 ? 'auto' : '88px' }}>
+    {lowStockProducts.length > 0 && (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+            <div className="flex items-start">
+                <AlertTriangle className="w-6 h-6 text-red-600 mr-3 flex-shrink-0" />
+                <div className="flex-1">
+                    <h3 className="text-red-800 font-semibold">Low Stock Alert</h3>
+                    <p className="text-red-700 text-sm">
+                        {lowStockProducts.length} product(s) are running low on stock
+                    </p>
                 </div>
-            )}
+            </div>
+            <div className="mt-3">
+                {lowStockProducts.slice(0, 5).map(product => (
+                    <div key={product.id} className="text-sm text-red-700 py-1">
+                        • {product.name} - Only {product.stockQuantity} units left (Min: {product.minimumStock})
+                    </div>
+                ))}
+                {lowStockProducts.length > 5 && (
+                    <div className="text-sm text-red-600 py-1 font-semibold">
+                        + {lowStockProducts.length - 5} more items
+                    </div>
+                )}
+            </div>
+        </div>
+    )}
+</div>
 
             {/* Category Distribution - Simple version without charts */}
             <div className="bg-white rounded-lg shadow p-6 mb-8">
