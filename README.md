@@ -229,11 +229,7 @@ Smart algorithm that:
 - Integrates with product details page
 
 
-## 🙏 Acknowledgments
 
-- IKEA for design inspiration
-- React and .NET communities for excellent documentation
-- All open-source contributors whose libraries made this possible
 
 ---
 
