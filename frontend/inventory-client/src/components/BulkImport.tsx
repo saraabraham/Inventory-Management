@@ -29,12 +29,12 @@ const BulkImport: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
 
         try {
             const response = await axios.post(
-    `${process.env.REACT_APP_API_URL}/products/import`,
-    formData,
-    {
-        headers: { 'Content-Type': 'multipart/form-data' }
-    }
-);
+                `${process.env.REACT_APP_API_URL}/products/import`,
+                formData,
+                {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                }
+            );
 
             setResult(response.data.results);
             if (response.data.results.success > 0) {
